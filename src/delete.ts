@@ -14,7 +14,8 @@ export function getVersionIds(input: Input): Observable<string[]> {
       input.repo,
       input.packageName,
       input.numOldVersionsToDelete,
-      input.token
+      input.token,
+      input.numOldVersionsToSkip
     ).pipe(map(versionInfo => versionInfo.map(info => info.id)))
   }
 
@@ -34,7 +35,11 @@ export function deleteVersions(input: Input): Observable<boolean> {
     )
     return of(true)
   }
-
+  if (input.numOldVersionsToSkip > 0) {
+    console.log(
+      `Number of old versions to skip when deleting: ${input.numOldVersionsToSkip}`
+    )
+  }
   return getVersionIds(input).pipe(
     concatMap(ids => deletePackageVersions(ids, input.token))
   )

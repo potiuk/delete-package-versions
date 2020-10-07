@@ -39,6 +39,14 @@ This action deletes versions of a package from [GitHub Packages](https://github.
   # Defaults to 1.
   num-old-versions-to-delete:
 
+  # The number of old versions to skip when deleting oldest versions. This allows for example this combination
+  #   * num-old-versions-to-delete = 150
+  #   * num-old-versions-to-skip = 50
+  #  Which will always leave up tp 50 newest packages while deleting up to 100 oldest at a time
+  #  You can schedule it periodically to always leave up to 50 newest versions
+  # Defaults to 0.
+  num-old-versions-to-skip:
+
   # The token used to authenticate with GitHub Packages.
   # Defaults to github.token.
   # Required if deleting a version from a package hosted in a different repo than the one executing the workflow.
@@ -56,6 +64,8 @@ This action deletes versions of a package from [GitHub Packages](https://github.
 * [Delete oldest version of a package hosted in the same repo as the workflow](#delete-oldest-version-of-a-package-hosted-in-the-same-repo-as-the-workflow)
 * [Delete oldest x number of versions of a package hosted in the same repo as the workflow](#delete-oldest-x-number-of-versions-of-a-package-hosted-in-the-same-repo-as-the-workflow)
 * [Delete oldest x number of versions of a package hosted in a different repo than the workflow](#delete-oldest-x-number-of-versions-of-a-package-hosted-in-a-different-repo-than-the-workflow)
+* [Leave x newest and delete oldest y number of versions of a package hosted in the same repo as the workflow](#leave-x-newest-and-delete-oldest-y-number-of-versions-of-a-package-hosted-in-the-same-repo-as-the-workflow)
+* [Leave x newest and delete oldest y number of versions of a package hosted in a different repo than the workflow](#leave-x-newest-and-delete-oldest-y-number-of-versions-of-a-package-hosted-in-a-different-repo-than-the-workflow)
 
 ### Delete a specific version of a package hosted in the same repo as the workflow
 
@@ -196,6 +206,46 @@ Delete the oldest 3 version of a package hosted in a different repo than the one
     num-old-versions-to-delete: 3
     token: ${{ secrets.GITHUB_PAT }}
 ```
+
+### Leave x newest and delete oldest y number of versions of a package hosted in the same repo as the workflow
+
+To delete the oldest x number of versions of a package hosted in the same repo that is executing the workflow the __package-name__, and __num-old-versions-to-delete__ inputs are required.
+
+__Example__
+
+Delete the oldest 3 version of a package hosted in the same repo as the workflow
+
+```yaml
+- uses: actions/delete-package-versions@v1
+  with:
+    package-name: 'test-package'
+    num-old-versions-to-skip: 10
+    num-old-versions-to-delete: 100
+```
+
+<br>
+
+### Leave x newest and delete oldest y number of versions of a package hosted in a different repo than the workflow
+
+To delete the oldest x number of versions of a package hosted in a different repo than the one executing the workflow the __package-name__, __num-old-versions-to-delete__, __owner__, __repo__, and __token__ inputs are required.
+
+The [token][token] needs the delete packages and read packages scope. It is recommended [to store the token as a secret][secret]. In this example the [token][token] was stored as a secret named __GITHUB_PAT__.
+
+__Example__
+
+Delete the oldest 3 version of a package hosted in a different repo than the one executing the workflow
+
+```yaml
+- uses: actions/delete-package-versions@v1
+  with:
+    owner: 'github'
+    repo: 'packages'
+    package-name: 'test-package'
+    num-old-versions-to-skip: 10
+    num-old-versions-to-delete: 100
+    token: ${{ secrets.GITHUB_PAT }}
+```
+
 
 # License
 

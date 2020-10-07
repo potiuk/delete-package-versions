@@ -73,12 +73,42 @@ export function queryForOldestVersions(
   )
 }
 
-export function getOldestVersions(
+export function queryForNewestVersions(
   owner: string,
   repo: string,
   packageName: string,
   numVersions: number,
   token: string
+): Observable<GetVersionsQueryResponse> {
+  return from(
+    graphql(token, query, {
+      owner,
+      repo,
+      package: packageName,
+      first: numVersions,
+      headers: {
+        Accept: 'application/vnd.github.packages-preview+json'
+      }
+    }) as Promise<GetVersionsQueryResponse>
+  ).pipe(
+    catchError((err: GraphQlQueryResponse) => {
+      const msg = 'query for newest version failed.'
+      return throwError(
+        err.errors && err.errors.length > 0
+          ? `${msg} ${err.errors[0].message}`
+          : `${msg} verify input parameters are correct`
+      )
+    })
+  )
+}
+
+export function getOldestVersions(
+  owner: string,
+  repo: string,
+  packageName: string,
+  numVersions: number,
+  token: string,
+  numVersionsToSkip: number = 0
 ): Observable<VersionInfo[]> {
   return queryForOldestVersions(
     owner,
@@ -101,10 +131,13 @@ export function getOldestVersions(
           `number of versions requested was: ${numVersions}, but found: ${versions.length}`
         )
       }
-
-      return versions
-        .map(value => ({id: value.node.id, version: value.node.version}))
-        .reverse()
+      let seen = 0
+      return (
+        versions
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          .filter(value => seen++ > numVersionsToSkip)
+          .map(value => ({id: value.node.id, version: value.node.version}))
+      )
     })
   )
 }
